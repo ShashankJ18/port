@@ -14,7 +14,7 @@ with open("resume_embeddings.json", "r", encoding="utf-8") as f:
     CHUNKS = json.load(f)
 
 # Configure Gemini API
-API_KEY = "AIzaSyDLlxsxmiK0KACUEq_neAMtE102uecGHQM"
+API_KEY = os.environ.get("API_KEY")  # get from Render env
 if not API_KEY:
     raise ValueError("Please set API_KEY environment variable.")
 genai.configure(api_key=API_KEY)
