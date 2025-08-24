@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, render_template
 import google.generativeai as genai
 
 # === CONFIG ===
-EMBED_MODEL = "models/text-embedding-004"
+EMBED_MODEL = "models/embedding-001"
 CHAT_MODEL = "gemini-1.5-flash"
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -25,12 +25,12 @@ def cosine_similarity(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
 def retrieve(query, top_k=3):
-    # Updated embedding call
-    response = genai.embeddings.create(
+    # Correct Gemini embedding call
+    response = genai.embed_content(
         model=EMBED_MODEL,
-        input=query
+        content=query
     )
-    q_emb = response.data[0].embedding
+    q_emb = response["embedding"]
 
     scored = [(cosine_similarity(q_emb, c["embedding"]), c) for c in CHUNKS if c["embedding"]]
     scored.sort(key=lambda x: x[0], reverse=True)
@@ -49,7 +49,8 @@ Context:
 Question: {query}
 """
     try:
-        response = genai.GenerativeModel(CHAT_MODEL).generate_content(prompt)
+        model = genai.GenerativeModel(CHAT_MODEL)
+        response = model.generate_content(prompt)
         return response.text if response.text else "I don’t know."
     except Exception as e:
         return f"Error: {str(e)}"
