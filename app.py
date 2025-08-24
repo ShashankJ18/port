@@ -25,7 +25,13 @@ def cosine_similarity(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
 def retrieve(query, top_k=3):
-    q_emb = genai.embed_content(model=EMBED_MODEL, content=query)["embedding"]
+    # Updated embedding call
+    response = genai.embeddings.create(
+        model=EMBED_MODEL,
+        input=query
+    )
+    q_emb = response.data[0].embedding
+
     scored = [(cosine_similarity(q_emb, c["embedding"]), c) for c in CHUNKS if c["embedding"]]
     scored.sort(key=lambda x: x[0], reverse=True)
     return [c for _, c in scored[:top_k]]
@@ -68,5 +74,5 @@ def ask():
 
 # === Run server ===
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))  # Railway will provide PORT
+    port = int(os.environ.get("PORT", 7860))  # Render will provide PORT
     app.run(host="0.0.0.0", port=port)
